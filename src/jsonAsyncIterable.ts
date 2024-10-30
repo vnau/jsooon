@@ -1,16 +1,34 @@
-import { JsonParserConfig } from "./JsonDecoder.js";
-import { StreamToAsyncIterable } from "./StreamToAsyncIterable.js";
+import { JsonParserConfig, JsonParserStream } from "./JsonDecoder.js";
 
+class StreamToAsyncIterable<T> {
+    private stream: ReadableStream<T>;
 
-export function responseToJsonAsyncIterable<T>(this: Response, config?: JsonParserConfig): AsyncIterable<T> {
-    // Check if the response body is readable
-    if (!this.body) {
-        throw new Error('Response has no body.');
+    constructor(readableStream: ReadableStream<Uint8Array>, config?: JsonParserConfig) {
+        this.stream = readableStream.pipeThrough(new TextDecoderStream())
+            .pipeThrough(new JsonParserStream<T>(config));
     }
 
-    return new StreamToAsyncIterable(this.body, config);
+    // Returns an async iterator that yields parsed JSON objects from the stream.
+    async *[Symbol.asyncIterator](): AsyncIterator<T> {
+        const reader = this.stream.getReader();
+
+        try {
+            let result: ReadableStreamReadResult<T>;
+            while (!(result = await reader.read()).done) {
+                yield result.value;
+            }
+        } finally {
+            reader.releaseLock();
+        }
+    }
 }
 
-export function streamToJsonAsyncIterable<T>(this: ReadableStream<Uint8Array>, config?: JsonParserConfig): AsyncIterable<T> {
-    return new StreamToAsyncIterable(this, config);
-}
+export function toJsonAsyncIterable<T>(source: ReadableStream<Uint8Array> | Response, config?: JsonParserConfig): AsyncIterable<T> {
+    const stream = source instanceof Response ? source.body : source;
+
+    if (!stream) {
+        throw new Error('No readable stream found.');
+    }
+
+    return new StreamToAsyncIterable(stream, config);
+};

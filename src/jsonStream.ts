@@ -1,17 +1,13 @@
 import { JsonParserConfig, JsonParserStream } from "./JsonDecoder.js";
 
-export function streamToJsonStream<T>(this: ReadableStream<Uint8Array>, config?: JsonParserConfig): ReadableStream<T> {
-    // Create a transform stream using CombinedTextToJsonTransformStream
-    // Pipe the response body through the transform stream
-    return this.pipeThrough(new TextDecoderStream())
-        .pipeThrough(new JsonParserStream<T>(config));
-};
+export function toJsonStream<T>(source: ReadableStream<Uint8Array> | Response, config?: JsonParserConfig): ReadableStream<T> {
+    const stream = source instanceof Response ? source.body : source;
 
-export function responseToJsonStream<T>(this: Response, config?: JsonParserConfig): ReadableStream<T> {
-    // Check if the response body is readable
-    if (!this.body) {
-        throw new Error('Response has no body.');
+    if (!stream) {
+        throw new Error('No readable stream found.');
     }
-    return this.body.pipeThrough(new TextDecoderStream())
+
+    return stream
+        .pipeThrough(new TextDecoderStream())
         .pipeThrough(new JsonParserStream<T>(config));
 };
