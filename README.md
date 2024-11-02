@@ -1,6 +1,6 @@
 # jsooner
 
-![npm](https://img.shields.io/npm/v/jsooner?color=brightgreen)
+[![npm](https://img.shields.io/npm/v/jsooner?color=brightgreen)](https://www.npmjs.com/package/jsooner)
 
 `jsooner` is a lightweight, efficient library for parsing large JSON streams.
 
@@ -28,7 +28,7 @@ Here's a basic example of how to use `jsooner`:
 ```TypeScript
 import { toJsonAsyncIterable } from "jsooner";
 
-const response = await fetch("https://raw.githubusercontent.com/vnau/jsooner/refs/heads/main/examples/data/geojson/point-samples.geojson");
+const response = await fetch("https://raw.githubusercontent.com/vnau/jsooner/refs/heads/main/examples/data/point-samples.geojson");
 const features = toJsonAsyncIterable(response, { lookup: '"features"' });
 for await (const feature of features) {
     console.log(feature);
@@ -51,4 +51,4 @@ The benchmarks were conducted on a [136 MB GeoJSON file](https://data-nces.opend
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
