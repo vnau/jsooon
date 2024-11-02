@@ -1,10 +1,11 @@
 {
   "name": "jsooner",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Parse long JSON streams faster.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
+  "sideEffects": false,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx tsc",
