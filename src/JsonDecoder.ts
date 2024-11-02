@@ -1,5 +1,5 @@
 export interface JsonParserConfig {
-    prefix: string;
+    lookup: string;
 }
 
 function getJsonSubstringLength(input: string, startIndex: number): number {
@@ -35,9 +35,12 @@ export class JsonDecoder<T> implements Transformer<string, T> {
     private isCompleted = false;
     private prefixSkipped = false;
     private prefix: string | null;
+    private prefixLength: number = 0;
 
     constructor(config?: JsonParserConfig) {
-        this.prefix = config?.prefix ?? null;
+        this.prefix = config?.lookup ?? null;
+        if (this.prefix)
+            this.prefixLength = this.prefix.length;
         this.prefixSkipped = !this.prefix;
     }
 
@@ -46,15 +49,21 @@ export class JsonDecoder<T> implements Transformer<string, T> {
     transform(chunk: string, controller: TransformStreamDefaultController<T>): void {
         if (this.isCompleted) return;
 
-        this.buffer += chunk;
-
         if (!this.prefixSkipped && this.prefix) {
+            if (this.buffer.length > this.prefixLength) {
+                this.buffer = this.buffer.slice(this.buffer.length - this.prefixLength, this.prefixLength) + chunk;
+            } else {
+                this.buffer += chunk;
+            }
+
             const prefixIndex = this.buffer.indexOf(this.prefix);
             if (prefixIndex > -1) {
                 this.prefixSkipped = true;
                 const prefixEnd = prefixIndex + this.prefix.length;
                 this.buffer = this.buffer.slice(prefixEnd);
             }
+        } else {
+            this.buffer += chunk;
         }
 
         let jsonStart = 0;
