@@ -11,7 +11,11 @@
     "build": "npx tsc",
     "start": "npm run build && node dist/index.js"
   },
-  "keywords": [],
+  "keywords": [
+    "json",
+    "parser",
+    "stream"
+  ],
   "github": "https://github.com/vnau/jsooner",
   "repository": {
     "type": "git",
