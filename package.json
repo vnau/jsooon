@@ -16,6 +16,9 @@
     "parser",
     "stream"
   ],
+  "files": [
+    "dist"
+  ],
   "github": "https://github.com/vnau/jsooner",
   "repository": {
     "type": "git",
