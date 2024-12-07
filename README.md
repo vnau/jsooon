@@ -1,6 +1,7 @@
 # jsooner
 
 [![npm](https://img.shields.io/npm/v/jsooner?color=brightgreen)](https://www.npmjs.com/package/jsooner)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/jsooner)](https://bundlephobia.com/package/jsooner)
 
 `jsooner` is a lightweight, efficient library for parsing large JSON streams.
 
