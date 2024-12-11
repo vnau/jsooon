@@ -1,11 +1,13 @@
-import { JsonParserConfig, JsonParserStream } from "./JsonDecoder.js";
+import { JsonParserConfig, JsonParserStat, JsonParserStream } from "./JsonDecoder.js";
 
 class StreamToAsyncIterable<T> {
     private stream: ReadableStream<T>;
+    private parserStream: JsonParserStream<T>;
 
     constructor(readableStream: ReadableStream<Uint8Array>, config?: JsonParserConfig) {
+        this.parserStream = new JsonParserStream<T>(config);
         this.stream = readableStream.pipeThrough(new TextDecoderStream())
-            .pipeThrough(new JsonParserStream<T>(config));
+            .pipeThrough(this.parserStream);
     }
 
     // Returns an async iterator that yields parsed JSON objects from the stream.

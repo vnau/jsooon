@@ -2,6 +2,14 @@ export interface JsonParserConfig {
     lookup: string;
 }
 
+export interface JsonParserStat {
+    maxBufferLength: number;
+    chunks: number;
+    maxChunkSize: number;
+    length: number;
+    items: number;
+}
+
 function getJsonSubstringLength(input: string, startIndex: number): number {
     let bracketBalance = 0;
     let isInsideString = false;
@@ -31,6 +39,13 @@ function getJsonSubstringLength(input: string, startIndex: number): number {
 }
 
 export class JsonDecoder<T> implements Transformer<string, T> {
+    private stat: JsonParserStat = {
+        maxBufferLength: 0,
+        chunks: 0,
+        length: 0,
+        items: 0,
+        maxChunkSize: 0,
+    };
     private buffer = "";
     private isCompleted = false;
     private prefixSkipped = false;
@@ -47,14 +62,19 @@ export class JsonDecoder<T> implements Transformer<string, T> {
     start(controller: TransformStreamDefaultController<T>): void { }
 
     transform(chunk: string, controller: TransformStreamDefaultController<T>): void {
-        if (this.isCompleted) return;
+        const chunkLength = chunk.length;
+        this.stat.maxChunkSize = Math.max(this.stat.maxChunkSize, chunkLength);
+        this.stat.chunks++;
+        this.stat.length += chunkLength;
+
+        if (this.isCompleted)
+            return;
 
         if (!this.prefixSkipped && this.prefix) {
-            if (this.buffer.length > this.prefixLength) {
-                this.buffer = this.buffer.slice(this.buffer.length - this.prefixLength, this.prefixLength) + chunk;
-            } else {
-                this.buffer += chunk;
-            }
+            if (this.buffer.length >= this.prefixLength)
+                this.buffer = this.buffer.slice(this.buffer.length - this.prefixLength);
+
+            this.buffer += chunk;
 
             const prefixIndex = this.buffer.indexOf(this.prefix);
             if (prefixIndex > -1) {
@@ -66,6 +86,8 @@ export class JsonDecoder<T> implements Transformer<string, T> {
             this.buffer += chunk;
         }
 
+        this.stat.maxBufferLength = Math.max(this.stat.maxBufferLength, this.buffer.length);
+
         let jsonStart = 0;
         while ((jsonStart = this.buffer.indexOf("{", jsonStart)) !== -1) {
             const jsonLength = getJsonSubstringLength(this.buffer, jsonStart);
@@ -75,6 +97,7 @@ export class JsonDecoder<T> implements Transformer<string, T> {
                 try {
                     const parsedObj: T = JSON.parse(jsonStr);
                     controller.enqueue(parsedObj);
+                    this.stat.items++;
                 } catch (error) {
                     controller.error(`JSON parse error: ${error}`);
                     return;
@@ -91,10 +114,17 @@ export class JsonDecoder<T> implements Transformer<string, T> {
     }
 
     flush(controller: TransformStreamDefaultController<T>): void { }
+
+    public getStat(): JsonParserStat { return this.stat; }
 }
 
 export class JsonParserStream<T> extends TransformStream<string, T> {
+    private decoder: JsonDecoder<T>;
     constructor(config?: JsonParserConfig) {
-        super(new JsonDecoder<T>(config));
+        const decoder = new JsonDecoder<T>(config);
+        super(decoder);
+        this.decoder = decoder;
     }
+
+    public getStat(): JsonParserStat { return this.decoder.getStat(); }
 }
