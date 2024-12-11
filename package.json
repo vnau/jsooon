@@ -7,10 +7,13 @@
   "type": "module",
   "sideEffects": false,
   "scripts": {
-    "test": "vitest",
-    "coverage": "vitest run --coverage",
     "build": "tsc",
-    "start": "npm run build && node dist/index.js"
+    "coverage": "vitest --coverage.enabled true",
+    "start": "npm run build && node dist/index.js",
+    "test-ci": "vitest run --coverage.enabled --coverage.reporter=\"text-summary\"",
+    "test-coverage": "vitest run --coverage",
+    "test-dev": "vitest",
+    "test": "vitest"
   },
   "keywords": [
     "json",
@@ -30,7 +33,7 @@
   "devDependencies": {
     "@types/node": "^22.8.1",
     "@vitest/coverage-v8": "^2.1.8",
-    "typescript": "^5.6.3",
+    "typescript": "^5.7.2",
     "vitest": "^2.1.8"
   }
 }
