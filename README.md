@@ -43,13 +43,21 @@ for await (const feature of features) {
 
 The benchmarks were conducted on a [136 MB GeoJSON file](https://data-nces.opendata.arcgis.com/api/download/v1/items/6a4fa1b0434e4688b5d60c2e5c1dcaaa/geojson?layers=0) stored locally.
 
-### Parsing Time
+```mermaid
+xychart-beta horizontal
+    title "Parsing Time"
+    x-axis [JSON.parse, jsooner, "streamparser/json", oboe, stream-json]
+    y-axis "Time, s" 0 --> 30
+    bar [1.78, 2.86, 6.94, 8.43, 25.4]
+```
 
-![Parsing Time](docs/time.png)
-
-### Parsing Memory
-
-![Parsing Memory](docs/memory.png)
+```mermaid
+xychart-beta horizontal
+    title "Parsing Memory"
+    x-axis ["streamparser/json", jsooner, stream-json, oboe, JSON.parse]
+    y-axis "Resident Set, Mb" 0 --> 750
+    bar [59, 62, 85, 625, 743]
+```
 
 ## License
 
